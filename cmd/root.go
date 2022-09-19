@@ -16,6 +16,7 @@ var Length uint16
 var Port uint16
 var Randomize bool
 var Scheme string
+var URI string
 var Verbose bool
 
 var rootCmd = &cobra.Command{
@@ -41,6 +42,7 @@ func init() {
 	rootCmd.Flags().Uint16VarP(&Port, "port", "p", 8080, "port to listen on")
 	rootCmd.Flags().BoolVarP(&Randomize, "randomize", "r", false, "randomize filename")
 	rootCmd.Flags().StringVarP(&Scheme, "scheme", "s", "http", "scheme to use in returned urls")
+	rootCmd.Flags().StringVarP(&URI, "uri", "u", "", "full uri (overrides domain, scheme, and port)")
 	rootCmd.Flags().BoolVarP(&Verbose, "verbose", "v", false, "log accessed files to stdout")
 	rootCmd.Flags().SetInterspersed(true)
 }

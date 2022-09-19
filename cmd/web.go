@@ -125,7 +125,14 @@ func ServePage(args []string) {
 		filename = filepath.Base(path)
 	}
 
-	fmt.Printf("%v://%v:%v/%v/%v\n", Scheme, Domain, Port, slug, filename)
+	var url string
+	switch URI {
+	case "":
+		url = fmt.Sprintf("%v://%v:%v/%v/%v", Scheme, Domain, Port, slug, filename)
+	default:
+		url = fmt.Sprintf("%v/%v/%v", URI, slug, filename)
+	}
+	fmt.Println(url)
 
 	http.Handle(fmt.Sprintf("/%v/%v", slug, filename), serveFileHandler(path, limits))
 	http.HandleFunc("/favicon.ico", doNothing)
