@@ -24,11 +24,11 @@ Available Commands:
   version     Print version
 
 Flags:
-  -c, --count uint      number of times to serve the file
+  -c, --count uint32    number of times to serve the file
   -d, --domain string   domain to use in returned urls (default "localhost")
   -h, --help            help for send
-  -l, --length int      length of url slug (and optionally obfuscated filename (default 6)
-  -p, --port int        port to listen on (default 8080)
+  -l, --length uint16   length of url slug (and optionally obfuscated filename (default 6)
+  -p, --port uint16     port to listen on (default 8080)
   -r, --randomize       randomize filename
   -s, --scheme string   scheme to use in returned urls (default "http")
   -v, --verbose         log accessed files to stdout
