@@ -65,7 +65,7 @@ func initializeLimits() *Limits {
 func serveFile(w http.ResponseWriter, r http.Request, path string, limits *Limits) error {
 	atomic.AddUint32(limits.counter, 1)
 	counter := atomic.LoadUint32(limits.counter)
-	if counter > Count && Count != 0 {
+	if counter >= Count && Count != 0 {
 		defer func() {
 			limits.channel <- true
 		}()
