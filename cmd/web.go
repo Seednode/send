@@ -37,7 +37,7 @@ func generateRandomString(length uint16) string {
 
 	builder := strings.Builder{}
 	builder.Grow(n)
-	for i, cache, remain := length-1, src.Int63(), letterIdxMax; i >= 0; {
+	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
 		if remain == 0 {
 			cache, remain = src.Int63(), letterIdxMax
 		}
