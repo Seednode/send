@@ -27,14 +27,16 @@ const (
 
 type Limits struct {
 	channel chan bool
-	counter *uint64
+	counter *uint32
 }
 
-func generateRandomString(length int) string {
+func generateRandomString(length uint16) string {
 	var src = rand.NewSource(time.Now().UnixNano())
 
+	n := int(length)
+
 	builder := strings.Builder{}
-	builder.Grow(length)
+	builder.Grow(n)
 	for i, cache, remain := length-1, src.Int63(), letterIdxMax; i >= 0; {
 		if remain == 0 {
 			cache, remain = src.Int63(), letterIdxMax
@@ -52,7 +54,7 @@ func generateRandomString(length int) string {
 
 func initializeLimits() *Limits {
 	channel := make(chan bool, 1)
-	var counter uint64
+	var counter uint32
 
 	return &Limits{
 		channel: channel,
@@ -61,8 +63,8 @@ func initializeLimits() *Limits {
 }
 
 func serveFile(w http.ResponseWriter, r http.Request, path string, limits *Limits) error {
-	atomic.AddUint64(limits.counter, 1)
-	counter := atomic.LoadUint64(limits.counter)
+	atomic.AddUint32(limits.counter, 1)
+	counter := atomic.LoadUint32(limits.counter)
 	if counter >= Count {
 		defer func() {
 			limits.channel <- true
@@ -134,7 +136,7 @@ func ServePage(args []string) {
 		os.Exit(0)
 	}()
 
-	err = http.ListenAndServe(":"+strconv.Itoa(Port), nil)
+	err = http.ListenAndServe(":"+strconv.FormatInt(int64(Port), 10), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
