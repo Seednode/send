@@ -85,7 +85,7 @@ func serveFile(w http.ResponseWriter, r http.Request, path string, limits *Limit
 	w.Write(buf)
 
 	if Verbose {
-		fmt.Printf(" (Finished in %v)\n", time.Now().Sub(startTime).Round(time.Microsecond))
+		fmt.Printf(" (Finished in %v)\n", time.Since(startTime).Round(time.Microsecond))
 	}
 
 	return nil
