@@ -6,7 +6,6 @@ package cmd
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -60,16 +59,6 @@ func initializeLimits() *Limits {
 	return &Limits{
 		channel: channel,
 		counter: &counter,
-	}
-}
-
-func isFromPipe() bool {
-	f, _ := os.Stdin.Stat()
-
-	if (f.Mode() & os.ModeCharDevice) == 0 {
-		return true
-	} else {
-		return false
 	}
 }
 
@@ -175,14 +164,11 @@ func ServePage(args []string) error {
 	var response []byte
 
 	switch {
-	case len(args) == 0 && isFromPipe():
+	case len(args) == 0:
 		response, err = readStdin()
 		if err != nil {
 			return err
 		}
-	case len(args) == 0:
-		err = errors.New("no input provided")
-		return err
 	default:
 		response, err = readFile(path)
 	}
