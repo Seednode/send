@@ -6,6 +6,8 @@ While this tool won't help you bypass NAT or anything like that, it does solve t
 
 Simply point this tool at a file, and it will generate a URL others can use to download it.
 
+If no file is specified, it will read from stdin.
+
 The filename is prefaced by a randomly generated slug, of configurable length.
 
 If so inclined, you can also optionally obfuscate the filename.

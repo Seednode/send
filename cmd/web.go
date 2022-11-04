@@ -5,6 +5,7 @@ Copyright © 2022 Seednode <seednode@seedno.de>
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"math/rand"
@@ -17,12 +18,12 @@ import (
 	"time"
 )
 
-const LOGDATE string = "2006-01-02T15:04:05.000000000-07:00"
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const (
-	letterIdxBits = 6                    // 6 bits to represent a letter index
-	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
-	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+	LOGDATE       string = "2006-01-02T15:04:05.000000000-07:00"
+	letterBytes          = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	letterIdxBits        = 6
+	letterIdxMask        = 1<<letterIdxBits - 1
+	letterIdxMax         = 63 / letterIdxBits
 )
 
 type Limits struct {
@@ -62,7 +63,17 @@ func initializeLimits() *Limits {
 	}
 }
 
-func serveFile(w http.ResponseWriter, r http.Request, path string, limits *Limits) error {
+func isFromPipe() bool {
+	f, _ := os.Stdin.Stat()
+
+	if (f.Mode() & os.ModeCharDevice) == 0 {
+		return true
+	} else {
+		return false
+	}
+}
+
+func updateCounter(limits *Limits) {
 	atomic.AddUint32(limits.counter, 1)
 	counter := atomic.LoadUint32(limits.counter)
 	if counter >= Count && Count != 0 {
@@ -70,19 +81,43 @@ func serveFile(w http.ResponseWriter, r http.Request, path string, limits *Limit
 			limits.channel <- true
 		}()
 	}
+}
+
+func readStdin() ([]byte, error) {
+	var response []byte
+
+	scanner := bufio.NewScanner(os.Stdin)
+
+	for scanner.Scan() {
+		response = append(response, scanner.Bytes()...)
+		response = append(response, "\n"...)
+		if scanner.Err() != nil {
+			return nil, scanner.Err()
+		}
+	}
+
+	return response, nil
+}
+
+func readFile(path string) ([]byte, error) {
+	response, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func serveResponse(w http.ResponseWriter, r http.Request, response []byte, filename string, limits *Limits) error {
+	updateCounter(limits)
 
 	var startTime time.Time
 	if Verbose {
 		startTime = time.Now()
-		fmt.Printf("%v | %v requested %v", startTime.Format(LOGDATE), r.RemoteAddr, path)
+		fmt.Printf("%v | %v requested %v", startTime.Format(LOGDATE), r.RemoteAddr, filename)
 	}
 
-	buf, err := os.ReadFile(path)
-	if err != nil {
-		return err
-	}
-
-	w.Write(buf)
+	w.Write(response)
 
 	if Verbose {
 		fmt.Printf(" (Finished in %v)\n", time.Since(startTime).Round(time.Microsecond))
@@ -91,9 +126,9 @@ func serveFile(w http.ResponseWriter, r http.Request, path string, limits *Limit
 	return nil
 }
 
-func serveFileHandler(path string, limits *Limits) http.HandlerFunc {
+func serveResponseHandler(response []byte, filename string, limits *Limits) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := serveFile(w, *r, path, limits)
+		err := serveResponse(w, *r, response, filename, limits)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -102,28 +137,31 @@ func serveFileHandler(path string, limits *Limits) http.HandlerFunc {
 
 func doNothing(http.ResponseWriter, *http.Request) {}
 
-func ServePage(args []string) {
-	path, err := filepath.Abs(args[0])
-	if err != nil {
-		log.Fatal(err)
+func ServePage(args []string) error {
+	var path string
+	var err error
+
+	if len(args) != 0 {
+		path, err = filepath.Abs(args[0])
+		if err != nil {
+			return err
+		}
+
+		_, err = os.Stat(path)
+		if err != nil {
+			return err
+		}
 	}
-
-	_, err = os.Stat(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	limits := initializeLimits()
-
-	slug := generateRandomString(Length)
 
 	var filename string
 	switch {
-	case Randomize:
+	case Randomize || len(args) == 0:
 		filename = generateRandomString(Length)
 	default:
 		filename = filepath.Base(path)
 	}
+
+	slug := generateRandomString(Length)
 
 	var url string
 	switch URI {
@@ -134,7 +172,21 @@ func ServePage(args []string) {
 	}
 	fmt.Println(url)
 
-	http.Handle(fmt.Sprintf("/%v/%v", slug, filename), serveFileHandler(path, limits))
+	var response []byte
+
+	switch {
+	case len(args) == 0 && isFromPipe():
+		response, err = readStdin()
+		if err != nil {
+			return err
+		}
+	default:
+		response, err = readFile(path)
+	}
+
+	limits := initializeLimits()
+
+	http.Handle(fmt.Sprintf("/%v/%v", slug, filename), serveResponseHandler(response, filename, limits))
 	http.HandleFunc("/favicon.ico", doNothing)
 
 	go func() {
@@ -145,6 +197,8 @@ func ServePage(args []string) {
 
 	err = http.ListenAndServe(":"+strconv.FormatInt(int64(Port), 10), nil)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }

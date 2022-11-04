@@ -5,7 +5,7 @@ Copyright © 2022 Seednode <seednode@seedno.de>
 package cmd
 
 import (
-	"os"
+	"log"
 
 	"github.com/spf13/cobra"
 )
@@ -22,16 +22,19 @@ var Verbose bool
 var rootCmd = &cobra.Command{
 	Use:   "send <file>",
 	Short: "Generates a one-off download link for a specified file.",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		ServePage(args)
+		err := ServePage(args)
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }
 
