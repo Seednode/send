@@ -8,7 +8,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -131,7 +130,8 @@ func serveResponseHandler(response []byte, filename string, limits *Limits) http
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := serveResponse(w, *r, response, filename, limits)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(err)
+			os.Exit(1)
 		}
 	}
 }
