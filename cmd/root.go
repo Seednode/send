@@ -30,7 +30,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		if len(args) == 0 && !isFromPipe() {
-			err := errors.New("no input provided")
+			err := errors.New("no file specified and no data received from stdin")
 			return err
 		}
 
