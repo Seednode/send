@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -170,7 +171,6 @@ func ServePage(args []string) error {
 	default:
 		url = fmt.Sprintf("%v/%v/%v", URI, slug, filename)
 	}
-	fmt.Println(url)
 
 	var response []byte
 
@@ -180,9 +180,14 @@ func ServePage(args []string) error {
 		if err != nil {
 			return err
 		}
+	case len(args) == 0:
+		err = errors.New("no input provided")
+		return err
 	default:
 		response, err = readFile(path)
 	}
+
+	fmt.Println(url)
 
 	limits := initializeLimits()
 
