@@ -171,6 +171,9 @@ func ServePage(args []string) error {
 		}
 	default:
 		response, err = readFile(path)
+		if err != nil {
+			return err
+		}
 	}
 
 	fmt.Println(url)
