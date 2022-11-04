@@ -20,7 +20,7 @@ var URI string
 var Verbose bool
 
 var rootCmd = &cobra.Command{
-	Use:   "send <file>",
+	Use:   "send [file]",
 	Short: "Generates a one-off download link for a specified file.",
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

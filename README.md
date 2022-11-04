@@ -17,7 +17,7 @@ Builds available [here](https://cdn.seedno.de/builds/send).
 ## Usage output
 ```
 Usage:
-  send <file> [flags]
+  send [file] [flags]
   send [command]
 
 Available Commands:
