@@ -29,7 +29,7 @@ Flags:
   -c, --count uint32    number of times to serve the file
   -d, --domain string   domain to use in returned urls (default "localhost")
   -h, --help            help for send
-  -l, --length uint16   length of url slug (and optionally obfuscated filename (default 6)
+  -l, --length uint16   length of url slug (and optionally obfuscated filename) (default 6)
   -p, --port uint16     port to listen on (default 8080)
   -r, --randomize       randomize filename
   -s, --scheme string   scheme to use in returned urls (default "http")
