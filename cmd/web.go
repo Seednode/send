@@ -6,7 +6,9 @@ package cmd
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -28,6 +30,16 @@ const (
 type Limits struct {
 	channel chan bool
 	counter *uint32
+}
+
+func isFromPipe() bool {
+	f, _ := os.Stdin.Stat()
+
+	if (f.Mode() & os.ModeCharDevice) == 0 {
+		return true
+	} else {
+		return false
+	}
 }
 
 func generateRandomString(length uint16) string {
@@ -127,31 +139,29 @@ func serveResponseHandler(response []byte, filename string, limits *Limits) http
 
 func doNothing(http.ResponseWriter, *http.Request) {}
 
-func ServePage(args []string) error {
-	var path string
-	var err error
-
-	if len(args) != 0 {
-		path, err = filepath.Abs(args[0])
-		if err != nil {
-			return err
-		}
-
-		_, err = os.Stat(path)
-		if err != nil {
-			return err
-		}
-	}
-
+func registerHandler(path, slug string, limits *Limits) error {
 	var filename string
 	switch {
-	case Randomize || len(args) == 0:
+	case Randomize || path == "":
 		filename = generateRandomString(Length)
 	default:
 		filename = filepath.Base(path)
 	}
 
-	slug := generateRandomString(Length)
+	var response []byte
+	var err error = nil
+
+	if path == "" {
+		response, err = readStdin()
+		if err != nil {
+			return err
+		}
+	} else {
+		response, err = readFile(path)
+		if err != nil {
+			return err
+		}
+	}
 
 	var url string
 	switch URI {
@@ -161,27 +171,48 @@ func ServePage(args []string) error {
 		url = fmt.Sprintf("%v/%v/%v", URI, slug, filename)
 	}
 
-	var response []byte
+	fmt.Println(url)
 
+	http.Handle(fmt.Sprintf("/%v/%v", slug, filename), serveResponseHandler(response, filename, limits))
+
+	return nil
+}
+
+func registerHandlers(args []string, slug string, limits *Limits) error {
 	switch {
-	case len(args) == 0:
-		response, err = readStdin()
-		if err != nil {
-			return err
-		}
-	default:
-		response, err = readFile(path)
-		if err != nil {
-			return err
+	case len(args) == 0 && !isFromPipe():
+		err := errors.New("no file(s) specified and no data received from stdin")
+		return err
+	case len(args) == 0 && isFromPipe():
+		registerHandler("", slug, limits)
+	case len(args) != 0:
+		for i := 0; i < len(args); i++ {
+			_, err := os.Stat(args[i])
+			if err != nil {
+				return err
+			}
+
+			path, err := filepath.Abs(args[i])
+			if err != nil {
+				return err
+			}
+
+			registerHandler(path, slug, limits)
 		}
 	}
 
-	fmt.Println(url)
+	return nil
+}
+
+func ServePage(args []string) {
+	slug := generateRandomString(Length)
 
 	limits := initializeLimits()
 
-	http.Handle(fmt.Sprintf("/%v/%v", slug, filename), serveResponseHandler(response, filename, limits))
-	http.HandleFunc("/favicon.ico", doNothing)
+	err := registerHandlers(args, slug, limits)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	go func() {
 		<-limits.channel
@@ -189,10 +220,10 @@ func ServePage(args []string) error {
 		os.Exit(0)
 	}()
 
+	http.HandleFunc("/favicon.ico", doNothing)
+
 	err = http.ListenAndServe(":"+strconv.FormatInt(int64(Port), 10), nil)
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
-
-	return nil
 }
