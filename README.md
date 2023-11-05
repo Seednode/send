@@ -16,14 +16,10 @@ Builds available [here](https://cdn.seedno.de/builds/send).
 
 ## Usage output
 ```
-Usage:
-  send [file] [file]... [flags]
-  send [command]
+Generates a one-off download link for one or more specified file(s).
 
-Available Commands:
-  completion  Generate the autocompletion script for the specified shell
-  help        Help about any command
-  version     Print version
+Usage:
+  send [file]... [flags]
 
 Flags:
   -c, --count uint32    number of times to serve the file(s)
@@ -33,7 +29,7 @@ Flags:
   -p, --port uint16     port to listen on (default 8080)
   -r, --randomize       randomize filename(s)
   -s, --scheme string   scheme to use in returned urls (default "http")
+  -u, --uri string      full uri (overrides domain, scheme, and port)
   -v, --verbose         log accessed files to stdout
-
-Use "send [command] --help" for more information about a command.
+      --version         version for send
 ```

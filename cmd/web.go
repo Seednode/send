@@ -1,5 +1,5 @@
 /*
-Copyright © 2022 Seednode <seednode@seedno.de>
+Copyright © 2023 Seednode <seednode@seedno.de>
 */
 
 package cmd
@@ -137,8 +137,6 @@ func serveResponseHandler(response []byte, filename string, limits *Limits) http
 	}
 }
 
-func doNothing(http.ResponseWriter, *http.Request) {}
-
 func registerHandler(path, slug string, limits *Limits) error {
 	var filename string
 	switch {
@@ -219,8 +217,6 @@ func ServePage(args []string) {
 
 		os.Exit(0)
 	}()
-
-	http.HandleFunc("/favicon.ico", doNothing)
 
 	err = http.ListenAndServe(":"+strconv.FormatInt(int64(Port), 10), nil)
 	if err != nil {

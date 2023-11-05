@@ -1,5 +1,5 @@
 /*
-Copyright © 2022 Seednode <seednode@seedno.de>
+Copyright © 2023 Seednode <seednode@seedno.de>
 */
 
 package cmd
@@ -8,6 +8,10 @@ import (
 	"errors"
 
 	"github.com/spf13/cobra"
+)
+
+const (
+	ReleaseVersion string = "0.6.0"
 )
 
 var Count uint32
@@ -48,5 +52,16 @@ func init() {
 	rootCmd.Flags().StringVarP(&Scheme, "scheme", "s", "http", "scheme to use in returned urls")
 	rootCmd.Flags().StringVarP(&URI, "uri", "u", "", "full uri (overrides domain, scheme, and port)")
 	rootCmd.Flags().BoolVarP(&Verbose, "verbose", "v", false, "log accessed files to stdout")
+
 	rootCmd.Flags().SetInterspersed(true)
+
+	rootCmd.CompletionOptions.HiddenDefaultCmd = true
+
+	rootCmd.SilenceErrors = true
+	rootCmd.SetHelpCommand(&cobra.Command{
+		Hidden: true,
+	})
+
+	rootCmd.SetVersionTemplate("send v{{.Version}}\n")
+	rootCmd.Version = ReleaseVersion
 }
