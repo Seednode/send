@@ -22,14 +22,15 @@ Usage:
   send [file]... [flags]
 
 Flags:
-  -c, --count uint32    number of times to serve the file(s)
-  -d, --domain string   domain to use in returned urls (default "localhost")
-  -h, --help            help for send
-  -l, --length uint16   length of url slug and obfuscated filename(s) (default 6)
-  -p, --port uint16     port to listen on (default 8080)
-  -r, --randomize       randomize filename(s)
-  -s, --scheme string   scheme to use in returned urls (default "http")
-  -u, --uri string      full uri (overrides domain, scheme, and port)
-  -v, --verbose         log accessed files to stdout
-      --version         version for send
+  -c, --count uint32       number of times to serve the file(s)
+  -d, --domain string      domain to use in returned urls (default "localhost")
+  -h, --help               help for send
+  -l, --length uint16      length of url slug and obfuscated filename(s) (default 6)
+  -p, --port uint16        port to listen on (default 8080)
+  -r, --randomize          randomize filename(s)
+  -s, --scheme string      scheme to use in returned urls (default "http")
+  -t, --timeout duration   shutdown after this length of time
+  -u, --uri string         full uri (overrides domain, scheme, and port)
+  -v, --verbose            log accessed files to stdout
+      --version            version for send
 ```

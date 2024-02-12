@@ -77,7 +77,7 @@ func initializeLimits() *Limits {
 func updateCounter(limits *Limits) {
 	atomic.AddUint32(limits.counter, 1)
 	counter := atomic.LoadUint32(limits.counter)
-	if counter >= Count && Count != 0 {
+	if counter >= count && count != 0 {
 		defer func() {
 			limits.channel <- true
 		}()
@@ -113,15 +113,15 @@ func serveResponse(w http.ResponseWriter, r http.Request, response []byte, filen
 	updateCounter(limits)
 
 	var startTime time.Time
-	if Verbose {
+	if verbose {
 		startTime = time.Now()
-		fmt.Printf("%v | %v requested %v", startTime.Format(LOGDATE), r.RemoteAddr, filename)
+		fmt.Printf("%s | %s => %s\n", startTime.Format(LOGDATE), r.RemoteAddr, r.RequestURI)
 	}
 
 	w.Write(response)
 
-	if Verbose {
-		fmt.Printf(" (Finished in %v)\n", time.Since(startTime).Round(time.Microsecond))
+	if verbose {
+		fmt.Printf(" (Finished in %s)\n", time.Since(startTime).Round(time.Microsecond))
 	}
 
 	return nil
@@ -140,8 +140,8 @@ func serveResponseHandler(response []byte, filename string, limits *Limits) http
 func registerHandler(path, slug string, limits *Limits) error {
 	var filename string
 	switch {
-	case Randomize || path == "":
-		filename = generateRandomString(Length)
+	case randomize || path == "":
+		filename = generateRandomString(length)
 	default:
 		filename = filepath.Base(path)
 	}
@@ -162,16 +162,16 @@ func registerHandler(path, slug string, limits *Limits) error {
 	}
 
 	var url string
-	switch URI {
+	switch uri {
 	case "":
-		url = fmt.Sprintf("%v://%v:%v/%v/%v", Scheme, Domain, Port, slug, filename)
+		url = fmt.Sprintf("%s://%s:%d/%s/%s", scheme, domain, port, slug, filename)
 	default:
-		url = fmt.Sprintf("%v/%v/%v", URI, slug, filename)
+		url = fmt.Sprintf("%s/%s/%s", uri, slug, filename)
 	}
 
 	fmt.Println(url)
 
-	http.Handle(fmt.Sprintf("/%v/%v", slug, filename), serveResponseHandler(response, filename, limits))
+	http.Handle(fmt.Sprintf("/%s/%s", slug, filename), serveResponseHandler(response, filename, limits))
 
 	return nil
 }
@@ -203,7 +203,7 @@ func registerHandlers(args []string, slug string, limits *Limits) error {
 }
 
 func ServePage(args []string) {
-	slug := generateRandomString(Length)
+	slug := generateRandomString(length)
 
 	limits := initializeLimits()
 
@@ -218,7 +218,16 @@ func ServePage(args []string) {
 		os.Exit(0)
 	}()
 
-	err = http.ListenAndServe(":"+strconv.FormatInt(int64(Port), 10), nil)
+	if timeout != 0 {
+		timer := time.NewTimer(timeout)
+		go func() {
+			for range timer.C {
+				os.Exit(0)
+			}
+		}()
+	}
+
+	err = http.ListenAndServe(":"+strconv.FormatInt(int64(port), 10), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
