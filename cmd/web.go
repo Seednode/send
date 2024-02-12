@@ -212,20 +212,17 @@ func ServePage(args []string) {
 		log.Fatal(err)
 	}
 
+	if timeout != 0 {
+		time.AfterFunc(timeout, func() {
+			os.Exit(0)
+		})
+	}
+
 	go func() {
 		<-limits.channel
 
 		os.Exit(0)
 	}()
-
-	if timeout != 0 {
-		timer := time.NewTimer(timeout)
-		go func() {
-			for range timer.C {
-				os.Exit(0)
-			}
-		}()
-	}
 
 	err = http.ListenAndServe(":"+strconv.FormatInt(int64(port), 10), nil)
 	if err != nil {
