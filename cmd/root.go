@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	ReleaseVersion string = "1.2.1"
+	ReleaseVersion string = "1.3.0"
 )
 
 var (
@@ -66,13 +66,13 @@ func init() {
 	rootCmd.Flags().StringVarP(&Bind, "bind", "b", "0.0.0.0", "address to bind to")
 	rootCmd.Flags().IntVarP(&Count, "count", "c", 0, "number of times to serve the file(s)")
 	rootCmd.Flags().StringVarP(&Domain, "domain", "d", "", "domain to use in returned urls")
-	rootCmd.Flags().BoolVar(&ErrorExit, "error-exit", false, "shut down webserver on error, instead of just printing error")
+	rootCmd.Flags().BoolVarP(&ErrorExit, "error-exit", "e", false, "shut down webserver on error, instead of just printing error")
 	rootCmd.Flags().IntVarP(&Length, "length", "l", 6, "length of url slug and obfuscated filename(s)")
 	rootCmd.Flags().IntVarP(&Port, "port", "p", 8080, "port to listen on")
 	rootCmd.Flags().BoolVarP(&Randomize, "randomize", "r", false, "randomize filename(s)")
 	rootCmd.Flags().StringVarP(&Scheme, "scheme", "s", "http", "scheme to use in returned urls")
 	rootCmd.Flags().DurationVarP(&Timeout, "timeout", "t", 0, "shutdown after this length of time")
-	rootCmd.Flags().DurationVar(&TimeoutInterval, "timeout-interval", time.Minute, "display remaining time in timeout every N seconds")
+	rootCmd.Flags().DurationVarP(&TimeoutInterval, "interval", "i", time.Minute, "display remaining time in timeout every N seconds")
 	rootCmd.Flags().StringVarP(&URI, "uri", "u", "", "full uri (overrides domain, scheme, and port)")
 	rootCmd.Flags().BoolVarP(&Verbose, "verbose", "v", false, "log accessed files to stdout")
 
