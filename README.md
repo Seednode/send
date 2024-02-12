@@ -26,18 +26,19 @@ Usage:
   send [file]... [flags]
 
 Flags:
-  -b, --bind string                 address to bind to (default "0.0.0.0")
-  -c, --count int                   number of times to serve the file(s)
-  -d, --domain string               domain to use in returned urls
-      --error-exit                  shut down webserver on error, instead of just printing error
-  -h, --help                        help for send
-  -l, --length int                  length of url slug and obfuscated filename(s) (default 6)
-  -p, --port int                    port to listen on (default 8080)
-  -r, --randomize                   randomize filename(s)
-  -s, --scheme string               scheme to use in returned urls (default "http")
-  -t, --timeout duration            shutdown after this length of time
-      --timeout-interval duration   display remaining time in timeout every N seconds (default 1m0s)
-  -u, --uri string                  full uri (overrides domain, scheme, and port)
-  -v, --verbose                     log accessed files to stdout
-      --version                     version for send
+  -b, --bind string         address to bind to (default "0.0.0.0")
+  -c, --count int           number of times to serve the file(s)
+  -d, --domain string       domain to use in returned urls
+  -e, --error-exit          shut down webserver on error, instead of just printing error
+  -h, --help                help for send
+  -i, --interval duration   display remaining time in timeout every N seconds (default 1m0s)
+  -l, --length int          length of url slug and obfuscated filename(s) (default 6)
+  -p, --port int            port to listen on (default 8080)
+      --profile             register net/http/pprof handlers
+  -r, --randomize           randomize filename(s)
+  -s, --scheme string       scheme to use in returned urls (default "http")
+  -t, --timeout duration    shutdown after this length of time
+  -u, --uri string          full uri (overrides domain, scheme, and port)
+  -v, --verbose             log accessed files to stdout
+      --version             version for send
 ```
