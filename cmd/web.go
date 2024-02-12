@@ -23,6 +23,8 @@ import (
 )
 
 var (
+	ErrInvalidCount   = errors.New("count must be a non-negative integer")
+	ErrInvalidLength  = errors.New("length must be a non-negative integer")
 	ErrInvalidPort    = errors.New("listen port must be an integer between 1 and 65535 inclusive")
 	ErrInvalidTimeout = errors.New("timeout interval must be longer than timeout")
 	ErrNoFile         = errors.New("no file(s) specified and no data received from stdin")
@@ -210,20 +212,16 @@ func registerHandler(mux *httprouter.Router, path, slug string, limits *Limits, 
 		}
 	}
 
-	var url = ""
+	mux.GET(fmt.Sprintf("%s%s", slug, filename), serveResponseHandler(response, filename, limits, errorChannel))
 
 	switch {
 	case URI == "" && Domain != "":
-		url = fmt.Sprintf("%s://%s:%d%s%s", Scheme, Domain, Port, slug, filename)
+		return fmt.Sprintf("%s://%s:%d%s%s", Scheme, Domain, Port, slug, filename)
 	case URI == "":
-		url = fmt.Sprintf("%s://%s:%d%s%s", Scheme, Bind, Port, slug, filename)
+		return fmt.Sprintf("%s://%s:%d%s%s", Scheme, Bind, Port, slug, filename)
 	default:
-		url = fmt.Sprintf("%s%s%s", URI, slug, filename)
+		return fmt.Sprintf("%s%s%s", URI, slug, filename)
 	}
-
-	mux.GET(fmt.Sprintf("%s%s", slug, filename), serveResponseHandler(response, filename, limits, errorChannel))
-
-	return url
 }
 
 func registerHandlers(mux *httprouter.Router, args []string, slug string, limits *Limits, errorChannel chan<- Error) []string {

@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	ReleaseVersion string = "1.1.0"
+	ReleaseVersion string = "1.1.1"
 )
 
 var (
@@ -35,6 +35,10 @@ var (
 		Short: "Generates a one-off download link for one or more specified file(s).",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			switch {
+			case Count < 0:
+				return ErrInvalidCount
+			case Length < 0:
+				return ErrInvalidLength
 			case Port < 1 || Port > 65535:
 				return ErrInvalidPort
 			case len(args) == 0 && !isFromPipe():
