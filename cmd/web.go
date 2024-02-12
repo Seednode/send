@@ -25,7 +25,7 @@ import (
 var (
 	ErrInvalidPort    = errors.New("listen port must be an integer between 1 and 65535 inclusive")
 	ErrInvalidTimeout = errors.New("timeout interval must be longer than timeout")
-	ErrNoFile         = errors.New("no file specified and no data received from stdin")
+	ErrNoFile         = errors.New("no file(s) specified and no data received from stdin")
 )
 
 const (
@@ -188,7 +188,7 @@ func registerHandler(mux *httprouter.Router, path, slug string, limits *Limits, 
 	case Randomize || path == "":
 		filename = generateRandomString(Length)
 	default:
-		filename = filepath.Base(path)
+		filename = "/" + filepath.Base(path)
 	}
 
 	var response []byte
@@ -214,57 +214,33 @@ func registerHandler(mux *httprouter.Router, path, slug string, limits *Limits, 
 
 	switch {
 	case URI == "" && Domain != "":
-		url = fmt.Sprintf("%s://%s:%d%s/%s", Scheme, Domain, Port, slug, filename)
+		url = fmt.Sprintf("%s://%s:%d%s%s", Scheme, Domain, Port, slug, filename)
 	case URI == "":
-		url = fmt.Sprintf("%s://%s:%d%s/%s", Scheme, Bind, Port, slug, filename)
+		url = fmt.Sprintf("%s://%s:%d%s%s", Scheme, Bind, Port, slug, filename)
 	default:
-		url = fmt.Sprintf("%s%s/%s", URI, slug, filename)
+		url = fmt.Sprintf("%s%s%s", URI, slug, filename)
 	}
 
-	mux.GET(fmt.Sprintf("%s/%s", slug, filename), serveResponseHandler(response, filename, limits, errorChannel))
+	mux.GET(fmt.Sprintf("%s%s", slug, filename), serveResponseHandler(response, filename, limits, errorChannel))
 
 	return url
 }
 
-func registerHandlers(mux *httprouter.Router, args []string, slug string, limits *Limits, errorChannel chan<- Error) string {
-	var url = ""
-	var err error
+func registerHandlers(mux *httprouter.Router, args []string, slug string, limits *Limits, errorChannel chan<- Error) []string {
+	var url = []string{}
 
-	switch {
-	case len(args) == 0 && !isFromPipe():
+	if len(args) == 0 && !isFromPipe() {
 		errorChannel <- Error{Message: ErrNoFile}
 
-		return ""
-	case len(args) == 0 && isFromPipe():
-		url = registerHandler(mux, "", slug, limits, errorChannel)
-		if err != nil {
-			errorChannel <- Error{Message: err}
+		return url
+	}
 
-			return ""
-		}
-	case len(args) != 0:
-		for i := 0; i < len(args); i++ {
-			_, err := os.Stat(args[i])
-			if err != nil {
-				errorChannel <- Error{Message: err}
+	for i := range args {
+		url = append(url, registerHandler(mux, args[i], slug, limits, errorChannel))
+	}
 
-				return ""
-			}
-
-			path, err := filepath.Abs(args[i])
-			if err != nil {
-				errorChannel <- Error{Message: err}
-
-				return ""
-			}
-
-			url = registerHandler(mux, path, slug, limits, errorChannel)
-			if err != nil {
-				errorChannel <- Error{Message: err}
-
-				return ""
-			}
-		}
+	if isFromPipe() {
+		url = append(url, registerHandler(mux, "", slug, limits, errorChannel))
 	}
 
 	return url
@@ -311,7 +287,7 @@ func ServePage(args []string) error {
 		counter: new(uint32),
 	}
 
-	url := registerHandlers(mux, args, slug, limits, errorChannel)
+	urls := registerHandlers(mux, args, slug, limits, errorChannel)
 
 	if Timeout != 0 {
 		time.AfterFunc(Timeout, func() {
@@ -340,9 +316,12 @@ func ServePage(args []string) error {
 	}()
 
 	if Verbose {
-		fmt.Printf("%s | Listening on %s\n",
-			time.Now().Format(logDate),
-			url)
+		for i := range urls {
+			fmt.Printf("%s | Listening on %s\n",
+				time.Now().Format(logDate),
+				urls[i])
+		}
+
 	}
 
 	err := srv.ListenAndServe()

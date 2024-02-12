@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	ReleaseVersion string = "1.0.0"
+	ReleaseVersion string = "1.1.0"
 )
 
 var (
@@ -52,7 +52,7 @@ var (
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
-		fmt.Printf("%s | ERROR: %v\n", time.Now().Format(logDate), err)
+		fmt.Printf("%s | Error: %s\n", time.Now().Format(logDate), err)
 
 		os.Exit(1)
 	}

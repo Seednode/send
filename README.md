@@ -4,13 +4,13 @@ Sometimes, you just need to send someone a file, and don't want to stand up a wh
 
 While this tool won't help you bypass NAT or anything like that, it does solve the initial issue.
 
-Simply point this tool at one or more file, and it will generate a URL others can use to download it.
+Simply point this tool at one or more file(s), and it will generate URLs others can use to download them.
 
-If no files are specified, it will read from stdin.
+It also accepts input via stdin, optionally in combination with filenames.
 
-Filenames are prefaced by a randomly generated slug, of configurable length.
+Filenames are prefaced by a randomly generated slug, of configurable length. Set `-l|--length` to 0 to disable this.
 
-If so inclined, you can also optionally obfuscate filenames.
+If so inclined, you can also optionally obfuscate filenames with the `-r|--randomize` flag.
 
 Static binary builds available [here](https://cdn.seedno.de/builds/send).
 
