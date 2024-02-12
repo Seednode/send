@@ -299,7 +299,7 @@ func ServePage(args []string) error {
 
 			go func() {
 				for range ticker.C {
-					fmt.Printf("%s | Timing out in %s\n", time.Now().Format(logDate), Timeout-time.Since(startTime).Round(time.Second))
+					fmt.Printf("%s | Shutting down in %s\n", time.Now().Format(logDate), Timeout-time.Since(startTime).Round(time.Second))
 				}
 			}()
 		}
