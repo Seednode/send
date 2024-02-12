@@ -325,6 +325,10 @@ func ServePage(args []string) error {
 		}
 	}
 
+	if Profile {
+		registerProfileHandlers(mux)
+	}
+
 	err := srv.ListenAndServe()
 	if !errors.Is(err, http.ErrServerClosed) {
 		return err

@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	ReleaseVersion string = "1.3.0"
+	ReleaseVersion string = "1.4.0"
 )
 
 var (
@@ -23,6 +23,7 @@ var (
 	ErrorExit       bool
 	Length          int
 	Port            int
+	Profile         bool
 	Randomize       bool
 	Scheme          string
 	Timeout         time.Duration
@@ -69,6 +70,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&ErrorExit, "error-exit", "e", false, "shut down webserver on error, instead of just printing error")
 	rootCmd.Flags().IntVarP(&Length, "length", "l", 6, "length of url slug and obfuscated filename(s)")
 	rootCmd.Flags().IntVarP(&Port, "port", "p", 8080, "port to listen on")
+	rootCmd.Flags().BoolVar(&Profile, "profile", false, "register net/http/pprof handlers")
 	rootCmd.Flags().BoolVarP(&Randomize, "randomize", "r", false, "randomize filename(s)")
 	rootCmd.Flags().StringVarP(&Scheme, "scheme", "s", "http", "scheme to use in returned urls")
 	rootCmd.Flags().DurationVarP(&Timeout, "timeout", "t", 0, "shutdown after this length of time")
