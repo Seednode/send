@@ -225,23 +225,23 @@ func registerHandler(mux *httprouter.Router, path, slug string, limits *Limits, 
 }
 
 func registerHandlers(mux *httprouter.Router, args []string, slug string, limits *Limits, errorChannel chan<- Error) []string {
-	var url = []string{}
+	var urls = []string{}
 
 	if len(args) == 0 && !isFromPipe() {
 		errorChannel <- Error{Message: ErrNoFile}
 
-		return url
+		return urls
 	}
 
 	for i := range args {
-		url = append(url, registerHandler(mux, args[i], slug, limits, errorChannel))
+		urls = append(urls, registerHandler(mux, args[i], slug, limits, errorChannel))
 	}
 
 	if isFromPipe() {
-		url = append(url, registerHandler(mux, "", slug, limits, errorChannel))
+		urls = append(urls, registerHandler(mux, "", slug, limits, errorChannel))
 	}
 
-	return url
+	return urls
 }
 
 func ServePage(args []string) error {
@@ -319,7 +319,10 @@ func ServePage(args []string) error {
 				time.Now().Format(logDate),
 				urls[i])
 		}
-
+	} else {
+		for i := range urls {
+			fmt.Println(urls[i])
+		}
 	}
 
 	err := srv.ListenAndServe()
