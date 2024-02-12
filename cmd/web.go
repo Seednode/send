@@ -278,14 +278,36 @@ func ServePage(args []string) error {
 		}
 	}()
 
-	slug := generateRandomString(Length)
-
 	limits := &Limits{
 		channel: make(chan bool, 1),
 		counter: new(uint32),
 	}
 
-	urls := registerHandlers(mux, args, slug, limits, errorChannel)
+	go func() {
+		<-limits.channel
+
+		err := srv.Shutdown(context.Background())
+
+		errorChannel <- Error{Message: err}
+	}()
+
+	if Profile {
+		registerProfileHandlers(mux)
+	}
+
+	urls := registerHandlers(mux, args, generateRandomString(Length), limits, errorChannel)
+
+	if Verbose {
+		for i := range urls {
+			fmt.Printf("%s | Listening on %s\n",
+				time.Now().Format(logDate),
+				urls[i])
+		}
+	} else {
+		for i := range urls {
+			fmt.Println(urls[i])
+		}
+	}
 
 	if Timeout != 0 {
 		time.AfterFunc(Timeout, func() {
@@ -303,30 +325,6 @@ func ServePage(args []string) error {
 				}
 			}()
 		}
-	}
-
-	go func() {
-		<-limits.channel
-
-		err := srv.Shutdown(context.Background())
-
-		errorChannel <- Error{Message: err}
-	}()
-
-	if Verbose {
-		for i := range urls {
-			fmt.Printf("%s | Listening on %s\n",
-				time.Now().Format(logDate),
-				urls[i])
-		}
-	} else {
-		for i := range urls {
-			fmt.Println(urls[i])
-		}
-	}
-
-	if Profile {
-		registerProfileHandlers(mux)
 	}
 
 	err := srv.ListenAndServe()
