@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	ReleaseVersion string = "1.4.2"
+	ReleaseVersion string = "1.5.0"
 )
 
 var (
@@ -67,7 +67,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&Bind, "bind", "b", "0.0.0.0", "address to bind to")
 	rootCmd.Flags().IntVarP(&Count, "count", "c", 0, "number of times to serve the file(s)")
 	rootCmd.Flags().StringVarP(&Domain, "domain", "d", "", "domain to use in returned urls")
-	rootCmd.Flags().BoolVarP(&ErrorExit, "error-exit", "e", false, "shut down webserver on error, instead of just printing error")
+	rootCmd.Flags().BoolVarP(&ErrorExit, "exit", "e", false, "shut down webserver on error, instead of just printing error")
 	rootCmd.Flags().IntVarP(&Length, "length", "l", 6, "length of url slug and obfuscated filename(s)")
 	rootCmd.Flags().IntVarP(&Port, "port", "p", 8080, "port to listen on")
 	rootCmd.Flags().BoolVar(&Profile, "profile", false, "register net/http/pprof handlers")
