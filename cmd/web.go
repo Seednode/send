@@ -330,7 +330,9 @@ func ServePage(args []string) error {
 		return err
 	}
 
-	fmt.Printf("%s | Shutting down...\n", time.Now().Format(logDate))
+	if Verbose {
+		fmt.Printf("%s | Shutting down...\n", time.Now().Format(logDate))
+	}
 
 	return nil
 }
