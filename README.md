@@ -31,7 +31,7 @@ Flags:
   -d, --domain string       domain to use in returned urls
   -e, --error-exit          shut down webserver on error, instead of just printing error
   -h, --help                help for send
-  -i, --interval duration   display remaining time in timeout every N seconds (default 1m0s)
+  -i, --interval duration   display remaining time in timeout at this interval (default 1m0s)
   -l, --length int          length of url slug and obfuscated filename(s) (default 6)
   -p, --port int            port to listen on (default 8080)
       --profile             register net/http/pprof handlers

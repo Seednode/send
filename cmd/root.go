@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	ReleaseVersion string = "1.4.1"
+	ReleaseVersion string = "1.4.2"
 )
 
 var (
@@ -74,7 +74,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&Randomize, "randomize", "r", false, "randomize filename(s)")
 	rootCmd.Flags().StringVarP(&Scheme, "scheme", "s", "http", "scheme to use in returned urls")
 	rootCmd.Flags().DurationVarP(&Timeout, "timeout", "t", 0, "shutdown after this length of time")
-	rootCmd.Flags().DurationVarP(&TimeoutInterval, "interval", "i", time.Minute, "display remaining time in timeout every N seconds")
+	rootCmd.Flags().DurationVarP(&TimeoutInterval, "interval", "i", time.Minute, "display remaining time in timeout at this interval")
 	rootCmd.Flags().StringVarP(&URI, "uri", "u", "", "full uri (overrides domain, scheme, and port)")
 	rootCmd.Flags().BoolVarP(&Verbose, "verbose", "v", false, "log accessed files to stdout")
 
