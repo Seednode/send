@@ -12,7 +12,11 @@ Filenames are prefaced by a randomly generated slug, of configurable length.
 
 If so inclined, you can also optionally obfuscate filenames.
 
-Builds available [here](https://cdn.seedno.de/builds/send).
+Static binary builds available [here](https://cdn.seedno.de/builds/send).
+
+x86_64 and ARM Docker images of latest version: `oci.seedno.de/seednode/send:latest`.
+
+Dockerfile available [here](https://git.seedno.de/seednode/send/raw/branch/master/docker/Dockerfile).
 
 ## Usage output
 ```
@@ -22,15 +26,18 @@ Usage:
   send [file]... [flags]
 
 Flags:
-  -c, --count uint32       number of times to serve the file(s)
-  -d, --domain string      domain to use in returned urls (default "localhost")
-  -h, --help               help for send
-  -l, --length uint16      length of url slug and obfuscated filename(s) (default 6)
-  -p, --port uint16        port to listen on (default 8080)
-  -r, --randomize          randomize filename(s)
-  -s, --scheme string      scheme to use in returned urls (default "http")
-  -t, --timeout duration   shutdown after this length of time
-  -u, --uri string         full uri (overrides domain, scheme, and port)
-  -v, --verbose            log accessed files to stdout
-      --version            version for send
+  -b, --bind string                 address to bind to (default "0.0.0.0")
+  -c, --count int                   number of times to serve the file(s)
+  -d, --domain string               domain to use in returned urls
+      --error-exit                  shut down webserver on error, instead of just printing error
+  -h, --help                        help for send
+  -l, --length int                  length of url slug and obfuscated filename(s) (default 6)
+  -p, --port int                    port to listen on (default 8080)
+  -r, --randomize                   randomize filename(s)
+  -s, --scheme string               scheme to use in returned urls (default "http")
+  -t, --timeout duration            shutdown after this length of time
+      --timeout-interval duration   display remaining time in timeout every N seconds (default 1m0s)
+  -u, --uri string                  full uri (overrides domain, scheme, and port)
+  -v, --verbose                     log accessed files to stdout
+      --version                     version for send
 ```

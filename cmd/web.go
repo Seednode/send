@@ -6,10 +6,11 @@ package cmd
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
-	"log"
 	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -17,19 +18,32 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/julienschmidt/httprouter"
+)
+
+var (
+	ErrInvalidPort    = errors.New("listen port must be an integer between 1 and 65535 inclusive")
+	ErrInvalidTimeout = errors.New("timeout interval must be longer than timeout")
+	ErrNoFile         = errors.New("no file specified and no data received from stdin")
 )
 
 const (
-	LOGDATE       string = "2006-01-02T15:04:05.000000000-07:00"
-	letterBytes          = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	letterIdxBits        = 6
-	letterIdxMask        = 1<<letterIdxBits - 1
-	letterIdxMax         = 63 / letterIdxBits
+	logDate       = `2006-01-02T15:04:05.000-07:00`
+	letterBytes   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	letterIdxBits = 6
+	letterIdxMask = 1<<letterIdxBits - 1
+	letterIdxMax  = 63 / letterIdxBits
 )
 
 type Limits struct {
 	channel chan bool
 	counter *uint32
+}
+
+type Error struct {
+	Message error
+	Host    string
 }
 
 func isFromPipe() bool {
@@ -42,7 +56,11 @@ func isFromPipe() bool {
 	}
 }
 
-func generateRandomString(length uint16) string {
+func generateRandomString(length int) string {
+	if length < 1 {
+		return ""
+	}
+
 	var src = rand.NewSource(time.Now().UnixNano())
 
 	n := int(length)
@@ -61,26 +79,25 @@ func generateRandomString(length uint16) string {
 		remain--
 	}
 
-	return builder.String()
-}
-
-func initializeLimits() *Limits {
-	channel := make(chan bool, 1)
-	var counter uint32
-
-	return &Limits{
-		channel: channel,
-		counter: &counter,
-	}
+	return "/" + builder.String()
 }
 
 func updateCounter(limits *Limits) {
 	atomic.AddUint32(limits.counter, 1)
 	counter := atomic.LoadUint32(limits.counter)
-	if counter >= count && count != 0 {
+	if counter >= uint32(Count) {
 		defer func() {
 			limits.channel <- true
 		}()
+	}
+
+	remaining := Count - int(counter)
+
+	switch {
+	case Verbose && remaining != 0:
+		fmt.Printf("%s | %d copies remaining\n", time.Now().Format(logDate), remaining)
+	case Verbose:
+		fmt.Printf("%s | All copies sent\n", time.Now().Format(logDate))
 	}
 }
 
@@ -109,39 +126,67 @@ func readFile(path string) ([]byte, error) {
 	return response, nil
 }
 
-func serveResponse(w http.ResponseWriter, r http.Request, response []byte, filename string, limits *Limits) error {
-	updateCounter(limits)
+func realIP(r *http.Request, includePort bool) string {
+	fields := strings.SplitAfter(r.RemoteAddr, ":")
 
-	var startTime time.Time
-	if verbose {
-		startTime = time.Now()
-		fmt.Printf("%s | %s => %s\n", startTime.Format(LOGDATE), r.RemoteAddr, r.RequestURI)
+	host := strings.TrimSuffix(strings.Join(fields[:len(fields)-1], ""), ":")
+	port := fields[len(fields)-1]
+
+	if host == "" {
+		return r.RemoteAddr
 	}
 
-	w.Write(response)
+	cfIP := r.Header.Get("Cf-Connecting-Ip")
+	xRealIP := r.Header.Get("X-Real-Ip")
 
-	if verbose {
-		fmt.Printf(" (Finished in %s)\n", time.Since(startTime).Round(time.Microsecond))
+	switch {
+	case cfIP != "" && includePort:
+		return cfIP + ":" + port
+	case cfIP != "":
+		return cfIP
+	case xRealIP != "" && includePort:
+		return xRealIP + ":" + port
+	case xRealIP != "":
+		return xRealIP
+	case includePort:
+		return host + ":" + port
+	default:
+		return host
+	}
+}
+
+func serveResponse(w http.ResponseWriter, r http.Request, response []byte, filename string, limits *Limits) error {
+	if Verbose {
+		fmt.Printf("%s | Serving file to %s\n", time.Now().Format(logDate), realIP(&r, true))
+	}
+
+	if Count != 0 {
+		updateCounter(limits)
+	}
+
+	_, err := w.Write(response)
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func serveResponseHandler(response []byte, filename string, limits *Limits) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func serveResponseHandler(response []byte, filename string, limits *Limits, errorChannel chan<- Error) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		err := serveResponse(w, *r, response, filename, limits)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			errorChannel <- Error{err, realIP(r, true)}
 		}
 	}
 }
 
-func registerHandler(path, slug string, limits *Limits) error {
+func registerHandler(mux *httprouter.Router, path, slug string, limits *Limits, errorChannel chan<- Error) string {
 	var filename string
+
 	switch {
-	case randomize || path == "":
-		filename = generateRandomString(length)
+	case Randomize || path == "":
+		filename = generateRandomString(Length)
 	default:
 		filename = filepath.Base(path)
 	}
@@ -152,80 +197,160 @@ func registerHandler(path, slug string, limits *Limits) error {
 	if path == "" {
 		response, err = readStdin()
 		if err != nil {
-			return err
+			errorChannel <- Error{Message: err}
+
+			return ""
 		}
 	} else {
 		response, err = readFile(path)
 		if err != nil {
-			return err
+			errorChannel <- Error{Message: err}
+
+			return ""
 		}
 	}
 
-	var url string
-	switch uri {
-	case "":
-		url = fmt.Sprintf("%s://%s:%d/%s/%s", scheme, domain, port, slug, filename)
+	var url = ""
+
+	switch {
+	case URI == "" && Domain != "":
+		url = fmt.Sprintf("%s://%s:%d%s/%s", Scheme, Domain, Port, slug, filename)
+	case URI == "":
+		url = fmt.Sprintf("%s://%s:%d%s/%s", Scheme, Bind, Port, slug, filename)
 	default:
-		url = fmt.Sprintf("%s/%s/%s", uri, slug, filename)
+		url = fmt.Sprintf("%s%s/%s", URI, slug, filename)
 	}
 
-	fmt.Println(url)
+	mux.GET(fmt.Sprintf("%s/%s", slug, filename), serveResponseHandler(response, filename, limits, errorChannel))
 
-	http.Handle(fmt.Sprintf("/%s/%s", slug, filename), serveResponseHandler(response, filename, limits))
-
-	return nil
+	return url
 }
 
-func registerHandlers(args []string, slug string, limits *Limits) error {
+func registerHandlers(mux *httprouter.Router, args []string, slug string, limits *Limits, errorChannel chan<- Error) string {
+	var url = ""
+	var err error
+
 	switch {
 	case len(args) == 0 && !isFromPipe():
-		err := errors.New("no file(s) specified and no data received from stdin")
-		return err
+		errorChannel <- Error{Message: ErrNoFile}
+
+		return ""
 	case len(args) == 0 && isFromPipe():
-		registerHandler("", slug, limits)
+		url = registerHandler(mux, "", slug, limits, errorChannel)
+		if err != nil {
+			errorChannel <- Error{Message: err}
+
+			return ""
+		}
 	case len(args) != 0:
 		for i := 0; i < len(args); i++ {
 			_, err := os.Stat(args[i])
 			if err != nil {
-				return err
+				errorChannel <- Error{Message: err}
+
+				return ""
 			}
 
 			path, err := filepath.Abs(args[i])
 			if err != nil {
-				return err
+				errorChannel <- Error{Message: err}
+
+				return ""
 			}
 
-			registerHandler(path, slug, limits)
+			url = registerHandler(mux, path, slug, limits, errorChannel)
+			if err != nil {
+				errorChannel <- Error{Message: err}
+
+				return ""
+			}
 		}
 	}
 
-	return nil
+	return url
 }
 
-func ServePage(args []string) {
-	slug := generateRandomString(length)
+func ServePage(args []string) error {
+	startTime := time.Now()
 
-	limits := initializeLimits()
+	mux := httprouter.New()
 
-	err := registerHandlers(args, slug, limits)
-	if err != nil {
-		log.Fatal(err)
+	srv := &http.Server{
+		Addr:         net.JoinHostPort(Bind, strconv.Itoa(Port)),
+		Handler:      mux,
+		IdleTimeout:  10 * time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 5 * time.Minute,
 	}
 
-	if timeout != 0 {
-		time.AfterFunc(timeout, func() {
-			os.Exit(0)
+	errorChannel := make(chan Error)
+
+	go func() {
+		for err := range errorChannel {
+			if err.Host == "" {
+				err.Host = "local"
+			}
+
+			fmt.Printf("%s | %s (Error: `%v`)\n",
+				time.Now().Format(logDate),
+				err.Host,
+				err.Message)
+
+			if ErrorExit {
+				srv.Shutdown(context.Background())
+
+				break
+			}
+		}
+	}()
+
+	slug := generateRandomString(Length)
+
+	limits := &Limits{
+		channel: make(chan bool, 1),
+		counter: new(uint32),
+	}
+
+	url := registerHandlers(mux, args, slug, limits, errorChannel)
+
+	if Timeout != 0 {
+		time.AfterFunc(Timeout, func() {
+			err := srv.Shutdown(context.Background())
+
+			errorChannel <- Error{Message: err}
 		})
+
+		if Verbose && TimeoutInterval > 0 {
+			ticker := time.NewTicker(TimeoutInterval)
+
+			go func() {
+				for range ticker.C {
+					fmt.Printf("%s | Timing out in %s\n", time.Now().Format(logDate), Timeout-time.Since(startTime).Round(time.Second))
+				}
+			}()
+		}
 	}
 
 	go func() {
 		<-limits.channel
 
-		os.Exit(0)
+		err := srv.Shutdown(context.Background())
+
+		errorChannel <- Error{Message: err}
 	}()
 
-	err = http.ListenAndServe(":"+strconv.FormatInt(int64(port), 10), nil)
-	if err != nil {
-		log.Fatal(err)
+	if Verbose {
+		fmt.Printf("%s | Listening on %s\n",
+			time.Now().Format(logDate),
+			url)
 	}
+
+	err := srv.ListenAndServe()
+	if !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+
+	fmt.Printf("%s | Shutting down...\n", time.Now().Format(logDate))
+
+	return nil
 }
