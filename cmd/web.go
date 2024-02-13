@@ -82,7 +82,7 @@ func generateRandomString(length int) string {
 	return builder.String()
 }
 
-func updateCounter(limits *Limits) {
+func updateCounter(limits *Limits) string {
 	atomic.AddUint32(limits.counter, 1)
 	counter := atomic.LoadUint32(limits.counter)
 	if counter >= uint32(Count) {
@@ -93,11 +93,7 @@ func updateCounter(limits *Limits) {
 
 	remaining := Count - int(counter)
 
-	if remaining != 0 {
-		fmt.Printf("%s | %d remaining\n", time.Now().Format(logDate), remaining)
-	} else {
-		fmt.Printf("%s | Exhausted\n", time.Now().Format(logDate))
-	}
+	return fmt.Sprintf(" (%d remaining)", remaining)
 }
 
 func readStdin() ([]byte, error) {
@@ -157,11 +153,13 @@ func realIP(r *http.Request, includePort bool) string {
 }
 
 func serveResponse(w http.ResponseWriter, r http.Request, response []byte, filename, fullpath string, limits *Limits) error {
-	fmt.Printf("%s | %s => %s\n", time.Now().Format(logDate), fullpath, realIP(&r, true))
+	remaining := ""
 
 	if Count != 0 {
-		updateCounter(limits)
+		remaining = updateCounter(limits)
 	}
+
+	fmt.Printf("%s | %s => %s%s\n", time.Now().Format(logDate), fullpath, realIP(&r, true), remaining)
 
 	w.Header().Set("Content-Type", http.DetectContentType(response))
 
@@ -363,7 +361,7 @@ func ServePage(args []string) error {
 		return err
 	}
 
-	fmt.Printf("%s | Shutting down\n", time.Now().Format(logDate))
+	fmt.Printf("%s | Shutting down...\n", time.Now().Format(logDate))
 
 	return nil
 }
