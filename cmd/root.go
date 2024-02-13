@@ -13,21 +13,43 @@ import (
 )
 
 const (
-	ReleaseVersion string = "2.0.0"
+	// Version number for built binaries and Docker image releases
+	ReleaseVersion string = "2.0.1"
 )
 
 var (
-	Bind            string
-	Count           int
-	ErrorExit       bool
-	Length          int
-	Port            int
-	Profile         bool
-	Randomize       bool
-	Timeout         time.Duration
+	// The IP address on which send will listen
+	Bind string
+
+	// The number of times to serve selected file(s) before shutting down
+	Count int
+
+	// Exit on error, instead of just printing the error
+	ErrorExit bool
+
+	// The length of randomly generated slugs and filenames
+	Length int
+
+	// The port on which send will listen
+	Port int
+
+	// Register http/pprof handlers
+	Profile bool
+
+	// Randomize filenames in URLs
+	Randomize bool
+
+	// The length of time after which send will shut down
+	Timeout time.Duration
+
+	// How often to display remaining time before shutdown, when timeout is enabled
 	TimeoutInterval time.Duration
-	URL             string
-	Verbose         bool
+
+	// Value to be used instead of http://<bind>:<port> in returned links
+	URL string
+
+	// Log accessed files to stdout
+	Verbose bool
 
 	rootCmd = &cobra.Command{
 		Use:   "send [file]...",
