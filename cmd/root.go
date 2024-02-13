@@ -14,7 +14,7 @@ import (
 
 const (
 	// Version number for built binaries and Docker image releases
-	ReleaseVersion string = "2.2.1"
+	ReleaseVersion string = "2.2.2"
 )
 
 var (
@@ -82,7 +82,7 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().StringVarP(&Bind, "bind", "b", "0.0.0.0", "address to bind to")
-	rootCmd.Flags().IntVarP(&Count, "count", "c", 0, "number of times to serve the file(s)")
+	rootCmd.Flags().IntVarP(&Count, "count", "c", 0, "number of times to serve file(s)")
 	rootCmd.Flags().BoolVarP(&ErrorExit, "exit", "e", false, "shut down webserver on error, instead of just printing error")
 	rootCmd.Flags().IntVarP(&Length, "length", "l", 6, "length of url slug and obfuscated filename(s)")
 	rootCmd.Flags().IntVarP(&Port, "port", "p", 8080, "port to listen on")
@@ -90,7 +90,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&Randomize, "randomize", "r", false, "randomize filename(s)")
 	rootCmd.Flags().DurationVarP(&Timeout, "timeout", "t", 0, "shutdown after this length of time")
 	rootCmd.Flags().DurationVarP(&TimeoutInterval, "interval", "i", time.Minute, "display remaining time in timeout at this interval")
-	rootCmd.Flags().StringVarP(&URL, "url", "u", "", "use this value instead of http://<bind>:<port> in returned URLs")
+	rootCmd.Flags().StringVarP(&URL, "url", "u", "", "use this value instead of http://<bind>:<port> in returned URL(s)")
 
 	rootCmd.Flags().SetInterspersed(true)
 
