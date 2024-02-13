@@ -14,7 +14,7 @@ import (
 
 const (
 	// Version number for built binaries and Docker image releases
-	ReleaseVersion string = "2.0.1"
+	ReleaseVersion string = "2.1.0"
 )
 
 var (
@@ -47,9 +47,6 @@ var (
 
 	// Value to be used instead of http://<bind>:<port> in returned links
 	URL string
-
-	// Log accessed files to stdout
-	Verbose bool
 
 	rootCmd = &cobra.Command{
 		Use:   "send [file]...",
@@ -94,13 +91,13 @@ func init() {
 	rootCmd.Flags().DurationVarP(&Timeout, "timeout", "t", 0, "shutdown after this length of time")
 	rootCmd.Flags().DurationVarP(&TimeoutInterval, "interval", "i", time.Minute, "display remaining time in timeout at this interval")
 	rootCmd.Flags().StringVarP(&URL, "url", "u", "", "use this value instead of http://<bind>:<port> in returned URLs")
-	rootCmd.Flags().BoolVarP(&Verbose, "verbose", "v", false, "log accessed files to stdout")
 
 	rootCmd.Flags().SetInterspersed(true)
 
 	rootCmd.CompletionOptions.HiddenDefaultCmd = true
 
 	rootCmd.SilenceErrors = true
+	rootCmd.SilenceUsage = true
 	rootCmd.SetHelpCommand(&cobra.Command{
 		Hidden: true,
 	})
