@@ -20,22 +20,22 @@ Dockerfile available [here](https://git.seedno.de/seednode/send/raw/branch/maste
 
 ## Usage output
 ```
-Generates a one-off download link for one or more specified file(s).
+Generates a one-off download link for one or more specified files.
 
 Usage:
   send [file]... [flags]
 
 Flags:
   -b, --bind string         address to bind to (default "0.0.0.0")
-  -c, --count int           number of times to serve file(s)
+  -c, --count int           number of times to serve files
   -e, --exit                shut down webserver on error, instead of just printing error
   -h, --help                help for send
   -i, --interval duration   display remaining time in timeout at this interval (default 1m0s)
-  -l, --length int          length of url slug and obfuscated filename(s) (default 6)
+  -l, --length int          length of url slug and obfuscated filenames (default 6)
   -p, --port int            port to listen on (default 8080)
       --profile             register net/http/pprof handlers
-  -r, --randomize           randomize filename(s)
+  -r, --randomize           randomize filenames
   -t, --timeout duration    shutdown after this length of time
-  -u, --url string          use this value instead of http://<bind>:<port> in returned URL(s)
+  -u, --url string          use this value instead of http://<bind>:<port> in returned URLs
   -v, --version             version for send
 ```
