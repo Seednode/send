@@ -157,12 +157,16 @@ func realIP(r *http.Request, includePort bool) string {
 	}
 }
 
-func serveResponse(w http.ResponseWriter, r http.Request, response []byte, filename string, limits *Limits) error {
-	fmt.Printf("%s | Serving file to %s\n", time.Now().Format(logDate), realIP(&r, true))
+func serveResponse(w http.ResponseWriter, r http.Request, response []byte, filename, fullpath string, limits *Limits) error {
+	fmt.Printf("%s | Serving %s to %s\n", time.Now().Format(logDate), fullpath, realIP(&r, true))
 
 	if Count != 0 {
 		updateCounter(limits)
 	}
+
+	w.Header().Set("Content-Type", http.DetectContentType(response))
+
+	w.Header().Set("Content-Length", strconv.Itoa(len(response)))
 
 	_, err := w.Write(response)
 	if err != nil {
@@ -172,9 +176,9 @@ func serveResponse(w http.ResponseWriter, r http.Request, response []byte, filen
 	return nil
 }
 
-func serveResponseHandler(response []byte, filename string, limits *Limits, errorChannel chan<- Error) httprouter.Handle {
+func serveResponseHandler(response []byte, filename, fullpath string, limits *Limits, errorChannel chan<- Error) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		err := serveResponse(w, *r, response, filename, limits)
+		err := serveResponse(w, *r, response, filename, fullpath, limits)
 		if err != nil {
 			errorChannel <- Error{Message: err, Host: realIP(r, true)}
 		}
@@ -226,7 +230,7 @@ func registerHandler(mux *httprouter.Router, path, slug string, limits *Limits, 
 		}
 	}
 
-	mux.GET(fmt.Sprintf("%s%s", slug, filename), serveResponseHandler(response, filename, limits, errorChannel))
+	mux.GET(fmt.Sprintf("%s%s", slug, filename), serveResponseHandler(response, filename, fullpath, limits, errorChannel))
 
 	switch {
 	case URL != "":
@@ -284,14 +288,14 @@ func ServePage(args []string) error {
 	go func() {
 		for err := range errorChannel {
 			if err.Host == "" {
-				fmt.Printf("%s | Error: %v\n",
+				fmt.Printf("%s | Error: %s\n",
 					time.Now().Format(logDate),
 					err.Message)
 			} else {
-				fmt.Printf("%s | %s (Error: %v)\n",
+				fmt.Printf("%s | Error: %s (from %s)\n",
 					time.Now().Format(logDate),
-					err.Host,
-					err.Message)
+					err.Message,
+					err.Host)
 			}
 
 			if ErrorExit || err.Fatal {
