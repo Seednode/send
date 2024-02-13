@@ -9,7 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 	"net"
 	"net/http"
 	"os"
@@ -27,7 +27,7 @@ var (
 	ErrInvalidLength  = errors.New("length must be a non-negative integer")
 	ErrInvalidPort    = errors.New("listen port must be an integer between 1 and 65535 inclusive")
 	ErrInvalidTimeout = errors.New("timeout interval must be longer than timeout")
-	ErrNoFile         = errors.New("no file(s) specified and no data received from stdin")
+	ErrNoFile         = errors.New("no files specified and no data received from stdin")
 )
 
 const (
@@ -64,15 +64,12 @@ func generateRandomString(length int) string {
 		return ""
 	}
 
-	var src = rand.NewSource(time.Now().UnixNano())
-
-	n := int(length)
-
 	builder := strings.Builder{}
-	builder.Grow(n)
-	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
+	builder.Grow(length)
+
+	for i, cache, remain := length-1, rand.Int64(), letterIdxMax; i >= 0; {
 		if remain == 0 {
-			cache, remain = src.Int63(), letterIdxMax
+			cache, remain = rand.Int64(), letterIdxMax
 		}
 		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
 			builder.WriteByte(letterBytes[idx])
@@ -82,7 +79,7 @@ func generateRandomString(length int) string {
 		remain--
 	}
 
-	return "/" + builder.String()
+	return builder.String()
 }
 
 func updateCounter(limits *Limits) {
@@ -111,8 +108,10 @@ func readStdin() ([]byte, error) {
 	for scanner.Scan() {
 		response = append(response, scanner.Bytes()...)
 		response = append(response, "\n"...)
-		if scanner.Err() != nil {
-			return nil, scanner.Err()
+
+		err := scanner.Err()
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -207,7 +206,7 @@ func registerHandler(mux *httprouter.Router, path, slug string, limits *Limits, 
 
 	switch {
 	case Randomize || path == "":
-		filename = generateRandomString(Length)
+		filename = "/" + generateRandomString(Length)
 	default:
 		filename = "/" + filepath.Base(path)
 	}
@@ -323,7 +322,7 @@ func ServePage(args []string) error {
 		registerProfileHandlers(mux)
 	}
 
-	urls, paths := registerHandlers(mux, args, generateRandomString(Length), limits, errorChannel)
+	urls, paths := registerHandlers(mux, args, "/"+generateRandomString(Length), limits, errorChannel)
 	if len(urls) == 0 || len(paths) == 0 {
 		errorChannel <- Error{Message: ErrNoFile, Fatal: true}
 	}

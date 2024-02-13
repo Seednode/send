@@ -14,7 +14,7 @@ import (
 
 const (
 	// Version number for built binaries and Docker image releases
-	ReleaseVersion string = "2.2.2"
+	ReleaseVersion string = "2.3.0"
 )
 
 var (
@@ -50,7 +50,7 @@ var (
 
 	rootCmd = &cobra.Command{
 		Use:   "send [file]...",
-		Short: "Generates a one-off download link for one or more specified file(s).",
+		Short: "Generates a one-off download link for one or more specified files.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			switch {
 			case Count < 0:
@@ -82,15 +82,15 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().StringVarP(&Bind, "bind", "b", "0.0.0.0", "address to bind to")
-	rootCmd.Flags().IntVarP(&Count, "count", "c", 0, "number of times to serve file(s)")
+	rootCmd.Flags().IntVarP(&Count, "count", "c", 0, "number of times to serve files")
 	rootCmd.Flags().BoolVarP(&ErrorExit, "exit", "e", false, "shut down webserver on error, instead of just printing error")
-	rootCmd.Flags().IntVarP(&Length, "length", "l", 6, "length of url slug and obfuscated filename(s)")
+	rootCmd.Flags().IntVarP(&Length, "length", "l", 6, "length of url slug and obfuscated filenames")
 	rootCmd.Flags().IntVarP(&Port, "port", "p", 8080, "port to listen on")
 	rootCmd.Flags().BoolVar(&Profile, "profile", false, "register net/http/pprof handlers")
-	rootCmd.Flags().BoolVarP(&Randomize, "randomize", "r", false, "randomize filename(s)")
+	rootCmd.Flags().BoolVarP(&Randomize, "randomize", "r", false, "randomize filenames")
 	rootCmd.Flags().DurationVarP(&Timeout, "timeout", "t", 0, "shutdown after this length of time")
 	rootCmd.Flags().DurationVarP(&TimeoutInterval, "interval", "i", time.Minute, "display remaining time in timeout at this interval")
-	rootCmd.Flags().StringVarP(&URL, "url", "u", "", "use this value instead of http://<bind>:<port> in returned URL(s)")
+	rootCmd.Flags().StringVarP(&URL, "url", "u", "", "use this value instead of http://<bind>:<port> in returned URLs")
 
 	rootCmd.Flags().SetInterspersed(true)
 
