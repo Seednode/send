@@ -94,9 +94,9 @@ func updateCounter(limits *Limits) {
 	remaining := Count - int(counter)
 
 	if remaining != 0 {
-		fmt.Printf("%s | %d copies remaining\n", time.Now().Format(logDate), remaining)
+		fmt.Printf("%s | %d remaining\n", time.Now().Format(logDate), remaining)
 	} else {
-		fmt.Printf("%s | All copies sent\n", time.Now().Format(logDate))
+		fmt.Printf("%s | Exhausted\n", time.Now().Format(logDate))
 	}
 }
 
@@ -157,7 +157,7 @@ func realIP(r *http.Request, includePort bool) string {
 }
 
 func serveResponse(w http.ResponseWriter, r http.Request, response []byte, filename, fullpath string, limits *Limits) error {
-	fmt.Printf("%s | Serving %s to %s\n", time.Now().Format(logDate), fullpath, realIP(&r, true))
+	fmt.Printf("%s | %s => %s\n", time.Now().Format(logDate), fullpath, realIP(&r, true))
 
 	if Count != 0 {
 		updateCounter(limits)
@@ -291,7 +291,7 @@ func ServePage(args []string) error {
 					time.Now().Format(logDate),
 					err.Message)
 			} else {
-				fmt.Printf("%s | Error: %s (from %s)\n",
+				fmt.Printf("%s | Error: %s (<= %s)\n",
 					time.Now().Format(logDate),
 					err.Message,
 					err.Host)
@@ -342,7 +342,7 @@ func ServePage(args []string) error {
 		})
 
 		if TimeoutInterval > 0 {
-			fmt.Printf("%s | Shutting down in %s\n", time.Now().Format(logDate), Timeout)
+			fmt.Printf("%s | Shutdown in %s\n", time.Now().Format(logDate), Timeout)
 
 			ticker := time.NewTicker(TimeoutInterval)
 
@@ -351,7 +351,7 @@ func ServePage(args []string) error {
 					left := Timeout - time.Since(startTime).Round(time.Second)
 
 					if left > 0 {
-						fmt.Printf("%s | Shutting down in %s\n", time.Now().Format(logDate), Timeout-time.Since(startTime).Round(time.Second))
+						fmt.Printf("%s | Shutdown in %s\n", time.Now().Format(logDate), Timeout-time.Since(startTime).Round(time.Second))
 					}
 				}
 			}()
@@ -363,7 +363,7 @@ func ServePage(args []string) error {
 		return err
 	}
 
-	fmt.Printf("%s | Shutting down...\n", time.Now().Format(logDate))
+	fmt.Printf("%s | Shutting down\n", time.Now().Format(logDate))
 
 	return nil
 }
