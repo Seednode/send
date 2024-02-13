@@ -215,12 +215,10 @@ func registerHandler(mux *httprouter.Router, path, slug string, limits *Limits, 
 	mux.GET(fmt.Sprintf("%s%s", slug, filename), serveResponseHandler(response, filename, limits, errorChannel))
 
 	switch {
-	case URI == "" && Domain != "":
-		return fmt.Sprintf("%s://%s:%d%s%s", Scheme, Domain, Port, slug, filename)
-	case URI == "":
-		return fmt.Sprintf("%s://%s:%d%s%s", Scheme, Bind, Port, slug, filename)
+	case URL != "":
+		return fmt.Sprintf("%s%s%s", URL, slug, filename)
 	default:
-		return fmt.Sprintf("%s%s%s", URI, slug, filename)
+		return fmt.Sprintf("http://%s:%d%s%s", Bind, Port, slug, filename)
 	}
 }
 

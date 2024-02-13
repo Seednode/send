@@ -13,22 +13,20 @@ import (
 )
 
 const (
-	ReleaseVersion string = "1.6.0"
+	ReleaseVersion string = "2.0.0"
 )
 
 var (
 	Bind            string
 	Count           int
-	Domain          string
 	ErrorExit       bool
 	Length          int
 	Port            int
 	Profile         bool
 	Randomize       bool
-	Scheme          string
 	Timeout         time.Duration
 	TimeoutInterval time.Duration
-	URI             string
+	URL             string
 	Verbose         bool
 
 	rootCmd = &cobra.Command{
@@ -66,16 +64,14 @@ func Execute() {
 func init() {
 	rootCmd.Flags().StringVarP(&Bind, "bind", "b", "0.0.0.0", "address to bind to")
 	rootCmd.Flags().IntVarP(&Count, "count", "c", 0, "number of times to serve the file(s)")
-	rootCmd.Flags().StringVarP(&Domain, "domain", "d", "", "domain to use in returned urls")
 	rootCmd.Flags().BoolVarP(&ErrorExit, "exit", "e", false, "shut down webserver on error, instead of just printing error")
 	rootCmd.Flags().IntVarP(&Length, "length", "l", 6, "length of url slug and obfuscated filename(s)")
 	rootCmd.Flags().IntVarP(&Port, "port", "p", 8080, "port to listen on")
 	rootCmd.Flags().BoolVar(&Profile, "profile", false, "register net/http/pprof handlers")
 	rootCmd.Flags().BoolVarP(&Randomize, "randomize", "r", false, "randomize filename(s)")
-	rootCmd.Flags().StringVarP(&Scheme, "scheme", "s", "http", "scheme to use in returned urls")
 	rootCmd.Flags().DurationVarP(&Timeout, "timeout", "t", 0, "shutdown after this length of time")
 	rootCmd.Flags().DurationVarP(&TimeoutInterval, "interval", "i", time.Minute, "display remaining time in timeout at this interval")
-	rootCmd.Flags().StringVarP(&URI, "uri", "u", "", "full uri (overrides domain, scheme, and port)")
+	rootCmd.Flags().StringVarP(&URL, "url", "u", "", "use this value instead of http://<bind>:<port> in returned URLs")
 	rootCmd.Flags().BoolVarP(&Verbose, "verbose", "v", false, "log accessed files to stdout")
 
 	rootCmd.Flags().SetInterspersed(true)

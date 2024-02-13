@@ -28,7 +28,6 @@ Usage:
 Flags:
   -b, --bind string         address to bind to (default "0.0.0.0")
   -c, --count int           number of times to serve the file(s)
-  -d, --domain string       domain to use in returned urls
   -e, --exit                shut down webserver on error, instead of just printing error
   -h, --help                help for send
   -i, --interval duration   display remaining time in timeout at this interval (default 1m0s)
@@ -36,9 +35,8 @@ Flags:
   -p, --port int            port to listen on (default 8080)
       --profile             register net/http/pprof handlers
   -r, --randomize           randomize filename(s)
-  -s, --scheme string       scheme to use in returned urls (default "http")
   -t, --timeout duration    shutdown after this length of time
-  -u, --uri string          full uri (overrides domain, scheme, and port)
+  -u, --url string          use this value instead of http://<bind>:<port> in returned URLs
   -v, --verbose             log accessed files to stdout
       --version             version for send
 ```
