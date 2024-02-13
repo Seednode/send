@@ -14,7 +14,7 @@ import (
 
 const (
 	// Version number for built binaries and Docker image releases
-	ReleaseVersion string = "2.2.0"
+	ReleaseVersion string = "2.2.1"
 )
 
 var (
@@ -74,7 +74,7 @@ var (
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
-		fmt.Printf("%s | Error: %s\n", time.Now().Format(logDate), err)
+		fmt.Println(err)
 
 		os.Exit(1)
 	}
