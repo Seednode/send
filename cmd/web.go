@@ -31,7 +31,7 @@ var (
 )
 
 const (
-	logDate       = `2006-01-02T15:04:05.000-07:00`
+	logDate       = "2006-01-02T15:04:05.000-07:00"
 	letterBytes   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	letterIdxBits = 6
 	letterIdxMask = 1<<letterIdxBits - 1
