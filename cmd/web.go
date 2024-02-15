@@ -185,23 +185,6 @@ func serveResponseHandler(response []byte, filename, fullpath string, limits *Li
 func registerHandler(mux *httprouter.Router, path, slug string, limits *Limits, errorChannel chan<- Error) (url, fullpath string) {
 	var filename string
 
-	f, err := os.Stat(path)
-	if err != nil {
-		errorChannel <- Error{Message: err}
-
-		return "", ""
-	}
-	if f.IsDir() {
-		return "", ""
-	}
-
-	fullpath, err = filepath.Abs(path)
-	if err != nil {
-		errorChannel <- Error{Message: err}
-
-		return "", ""
-	}
-
 	switch {
 	case Randomize || path == "":
 		filename = "/" + generateRandomString(Length)
@@ -210,6 +193,7 @@ func registerHandler(mux *httprouter.Router, path, slug string, limits *Limits, 
 	}
 
 	var response []byte
+	var err error
 
 	if path == "" {
 		response, err = readStdin()
@@ -218,7 +202,26 @@ func registerHandler(mux *httprouter.Router, path, slug string, limits *Limits, 
 
 			return "", ""
 		}
+
+		fullpath = "<data from stdin>"
 	} else {
+		f, err := os.Stat(path)
+		if err != nil {
+			errorChannel <- Error{Message: err}
+
+			return "", ""
+		}
+		if f.IsDir() {
+			return "", ""
+		}
+
+		fullpath, err = filepath.Abs(path)
+		if err != nil {
+			errorChannel <- Error{Message: err}
+
+			return "", ""
+		}
+
 		response, err = readFile(path)
 		if err != nil {
 			errorChannel <- Error{Message: err}
@@ -244,22 +247,18 @@ func registerHandlers(mux *httprouter.Router, args []string, slug string, limits
 		return urls, paths
 	}
 
-	for i := range args {
-		url, path := registerHandler(mux, args[i], slug, limits, errorChannel)
-		if url != "" {
-			urls = append(urls, url)
-		}
-		if path != "" {
-			paths = append(paths, path)
-		}
-	}
-
 	if isFromPipe() {
 		url, path := registerHandler(mux, "", slug, limits, errorChannel)
 		if url != "" {
 			urls = append(urls, url)
+			paths = append(paths, path)
 		}
-		if path != "" {
+	}
+
+	for i := range args {
+		url, path := registerHandler(mux, args[i], slug, limits, errorChannel)
+		if url != "" {
+			urls = append(urls, url)
 			paths = append(paths, path)
 		}
 	}
