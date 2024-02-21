@@ -39,3 +39,8 @@ Flags:
   -u, --url string          use this value instead of http://<bind>:<port> in returned URLs
   -v, --version             version for send
 ```
+
+## Building the Docker image
+From inside the cloned repository, build the image using the following command:
+
+`REGISTRY=<registry url> LATEST=yes TAG=alpine ./build-docker.sh`
