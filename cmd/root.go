@@ -14,7 +14,7 @@ import (
 
 const (
 	// Version number for built binaries and Docker image releases
-	ReleaseVersion string = "2.5.2"
+	ReleaseVersion string = "2.5.3"
 )
 
 var (

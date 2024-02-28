@@ -152,7 +152,7 @@ func realIP(r *http.Request, includePort bool) string {
 	}
 }
 
-func serveResponse(w http.ResponseWriter, r http.Request, response []byte, filename, fullpath string, limits *Limits) error {
+func serveResponse(w http.ResponseWriter, r http.Request, response []byte, fullpath string, limits *Limits) error {
 	remaining := ""
 
 	if Count != 0 {
@@ -173,9 +173,9 @@ func serveResponse(w http.ResponseWriter, r http.Request, response []byte, filen
 	return nil
 }
 
-func serveResponseHandler(response []byte, filename, fullpath string, limits *Limits, errorChannel chan<- Error) httprouter.Handle {
+func serveResponseHandler(response []byte, fullpath string, limits *Limits, errorChannel chan<- Error) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		err := serveResponse(w, *r, response, filename, fullpath, limits)
+		err := serveResponse(w, *r, response, fullpath, limits)
 		if err != nil {
 			errorChannel <- Error{Message: err, Host: realIP(r, true)}
 		}
@@ -230,7 +230,7 @@ func registerHandler(mux *httprouter.Router, path, slug string, limits *Limits, 
 		}
 	}
 
-	mux.GET(fmt.Sprintf("%s%s", slug, filename), serveResponseHandler(response, filename, fullpath, limits, errorChannel))
+	mux.GET(fmt.Sprintf("%s%s", slug, filename), serveResponseHandler(response, fullpath, limits, errorChannel))
 
 	switch {
 	case URL != "":
