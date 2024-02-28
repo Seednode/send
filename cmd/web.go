@@ -345,9 +345,9 @@ func ServePage(args []string) error {
 
 			go func() {
 				for range ticker.C {
-					left := Timeout - time.Since(startTime).Round(time.Second)
+					remains := Timeout - time.Since(startTime).Round(time.Second)
 
-					if left > 0 {
+					if remains > 0 {
 						fmt.Printf("%s | Shutdown in %s\n", time.Now().Format(logDate), Timeout-time.Since(startTime).Round(time.Second))
 					}
 				}
