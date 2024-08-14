@@ -1,6 +1,6 @@
 module seedno.de/seednode/send
 
-go 1.22
+go 1.23
 
 require (
 	github.com/julienschmidt/httprouter v1.3.0
