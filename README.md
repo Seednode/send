@@ -18,6 +18,24 @@ x86_64 and ARM Docker images of latest version: `oci.seedno.de/seednode/send:lat
 
 Dockerfile available [here](https://git.seedno.de/seednode/send/raw/branch/master/docker/Dockerfile).
 
+### Configuration
+The following configuration methods are accepted, in order of highest to lowest priority:
+- Command-line flags
+- Environment variables
+
+### Environment variables
+Almost all options configurable via flags can also be configured via environment variables. 
+
+The associated environment variable is the prefix `SEND_` plus the flag name, with the following changes:
+- Leading hyphens removed
+- Converted to upper-case
+- All internal hyphens converted to underscores
+
+For example:
+- `--bind 127.0.0.1` becomes `SEND_BIND=127.0.0.1`
+- `--interval 10s` becomes `SEND_INTERVAL=10s`
+- `--randomize` becomes `SEND_RANDOMIZE=true`
+
 ## Usage output
 ```
 Generates a one-off download link for one or more specified files.
@@ -35,8 +53,11 @@ Flags:
   -p, --port int            port to listen on (default 8080)
       --profile             register net/http/pprof handlers
   -r, --randomize           randomize filenames
+  -s, --scheme string       scheme to use in returned URLs (default "http")
   -t, --timeout duration    shutdown after this length of time
-  -u, --url string          use this value instead of http://<bind>:<port> in returned URLs
+      --tls-cert string     path to TLS certificate
+      --tls-key string      path to TLS keyfile
+  -u, --url string          use this value instead of <scheme>://<bind>:<port> in returned URLs
   -v, --version             version for send
 ```
 
