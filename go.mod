@@ -1,6 +1,6 @@
 module github.com/Seednode/send
 
-go 1.24
+go 1.25
 
 require (
 	github.com/julienschmidt/httprouter v1.3.0
